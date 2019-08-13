@@ -25,6 +25,6 @@ function reattachInstance() {
         skippedCount += 1;
         continue;
     }
-    return `${processedCount} frames processed, ${skippedCount} skipped`;
+    return `${processedCount} processed, ${skippedCount} skipped`;
 }
 figma.closePlugin(reattachInstance());
