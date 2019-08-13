@@ -11,6 +11,11 @@ function reattachInstance() {
     for (let index in clonedSelection) {
         let frame = clonedSelection[index];
 
+        if (frame.type !== "FRAME") {
+          skippedCount += 1;
+          continue
+        }
+
         let instanceReference = figma.currentPage.findOne(node => node.type === "INSTANCE" && node.name == frame.name) as InstanceNode;
 
         if (instanceReference != null) {
