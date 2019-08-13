@@ -1,21 +1,29 @@
 function reattachInstance() {
-  if (figma.currentPage.selection.length !== 1 || figma.currentPage.selection[0].type !== "FRAME") {
-    return "Please, select a frame first";
-  }
-  const selectedFrame = figma.currentPage.selection[0];
-  const instanceReference = figma.currentPage.findOne(node => node.type === "INSTANCE" && node.name == selectedFrame.name);
-  if (instanceReference === null) {
-    return "Couldn't find an instance with the same frame name."
+  let skippedCount = 0;
+  let processedCount = 0;
+
+  const clonedSelection = Object.assign([], figma.currentPage.selection);
+
+  for (let index in clonedSelection) {
+    let frame = clonedSelection[index];
+
+    let instanceReference = figma.currentPage.findOne(node => node.type === "INSTANCE" && node.name == frame.name) as InstanceNode;
+
+    if (instanceReference != null) {
+      let instanceClone = instanceReference.masterComponent.createInstance();
+      frame.parent.appendChild(instanceClone);
+      instanceClone.x = frame.x;
+      instanceClone.y = frame.y;
+      instanceClone.resize(frame.width, frame.height);
+      frame.remove();
+      processedCount += 1;
+      continue;
+    }
+    skippedCount += 1;
+    continue;
   }
 
-  let instanceClone = instanceReference.masterComponent.createInstance();
-  selectedFrame.parent.appendChild(instanceClone);
-  instanceClone.x = selectedFrame.x;
-  instanceClone.y = selectedFrame.y;
-  instanceClone.resize(selectedFrame.width, selectedFrame.height);
-  selectedFrame.remove();
-  figma.currentPage.selection = [instanceClone];
-  return `Frame replaced by "${instanceClone.name}" instance.`
+  return `${processedCount} frames processed, ${skippedCount} skipped`;
 }
-figma.closePlugin(reattachInstance());
 
+figma.closePlugin(reattachInstance());
