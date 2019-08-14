@@ -21,7 +21,9 @@ Get it here: https://www.figma.com/c/plugin/741415678427267506/Reattach-Instance
 Feel free to contribute :)
 
 
+---
 
+Contributors: [mikeozornin](https://github.com/mikeozornin)
 
 
 
