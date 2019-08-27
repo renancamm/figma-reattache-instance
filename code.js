@@ -6,10 +6,9 @@ function reattachInstance() {
         return "Please, select a frame first";
     }
     const clonedSelection = Object.assign([], figma.currentPage.selection);
-    for (let index in clonedSelection) {
-        let frame = clonedSelection[index];
+    for (let frame of clonedSelection) {
         let instanceReference;
-        if (frame.type !== "FRAME") {
+        if (frame.type !== "FRAME" && frame.type !== "GROUP") {
             skippedCount += 1;
             continue;
         }
