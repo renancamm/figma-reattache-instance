@@ -13,14 +13,14 @@ function reattachInstance() {
             continue;
         }
         if (!(frame.name in originalInstances)) {
-            instanceReference = figma.currentPage.findOne(node => node.type === "INSTANCE" && node.name == frame.name);
+            instanceReference = figma.root.findOne(node => node.type === "COMPONENT" && node.name == frame.name);
             originalInstances[frame.name] = instanceReference;
         }
         else {
             instanceReference = originalInstances[frame.name];
         }
         if (instanceReference != null) {
-            let instanceClone = instanceReference.masterComponent.createInstance();
+            let instanceClone = instanceReference.createInstance();
             frame.parent.appendChild(instanceClone);
             instanceClone.x = frame.x;
             instanceClone.y = frame.y;
