@@ -9,24 +9,23 @@ function reattachInstance() {
 
     const clonedSelection = Object.assign([], figma.currentPage.selection);
 
-    for (let index in clonedSelection) {
-        let frame = clonedSelection[index];
-        let instanceReference;
+    for (let frame of clonedSelection) {
+        let masterComponent;
 
-        if (frame.type !== "FRAME") {
+        if (frame.type !== "FRAME" && frame.type !== "GROUP") {
           skippedCount += 1;
           continue
         }
 
         if (!(frame.name in originalInstances)) {
-            instanceReference= figma.currentPage.findOne(node => node.type === "INSTANCE" && node.name == frame.name) as InstanceNode;
-            originalInstances[frame.name] = instanceReference;
+            masterComponent= figma.root.findOne(node => node.type === "COMPONENT" && node.name == frame.name) as InstanceNode;
+            originalInstances[frame.name] = masterComponent;
         } else {
-            instanceReference = originalInstances[frame.name];
+            masterComponent = originalInstances[frame.name];
         }
 
-        if (instanceReference != null) {
-            let instanceClone = instanceReference.masterComponent.createInstance();
+        if (masterComponent != null) {
+            let instanceClone = masterComponent.createInstance();
             frame.parent.appendChild(instanceClone);
             instanceClone.x = frame.x;
             instanceClone.y = frame.y;
