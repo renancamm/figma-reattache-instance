@@ -7,6 +7,11 @@
  * @see https://help.figma.com/article/306-using-instances#override
  */
 
+interface CopyDirection {
+    source: Node,
+    dest: Node
+}
+
 const effectsProps = ['effectStyleId', 'effects'];
 const colorProps = [
     'backgroundStyleId',
@@ -50,18 +55,12 @@ function clone(val) {
     return JSON.parse(JSON.stringify(val));
 }
 
+const createPropsCloner = ({source, dest}: CopyDirection) => (props: string[]) => {
+    if (!source || !dest) return;
 
-interface ClonerSettings {
-    from: Node,
-    to: Node
-}
-
-const createPropsCloner = ({from, to}: ClonerSettings) => (propsList: string[]) => {
-    if (!from || !to) return;
-
-    propsList.forEach(prop => {
-        if (!from[prop]) return;
-        to[prop] = clone(from[prop]);
+    props.forEach(prop => {
+        if (!source[prop]) return;
+        dest[prop] = clone(source[prop]);
     });
 }
 
@@ -89,7 +88,7 @@ function loadFonts(node) {
 }
 
 function copyOverrides(frame, instance) {
-    const cloneProps = createPropsCloner({ from: frame, to: instance });
+    const cloneProps = createPropsCloner({ source: frame, dest: instance });
     cloneProps(effectsProps);
     cloneProps(colorProps);
 
