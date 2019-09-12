@@ -43,7 +43,7 @@ const fontStyleProps = [
 
 
 function hasChildren(node) {
-    return !!node && !!node.children && !!node.children.length
+    return !!node && !!node.children && !!node.children.length;
 }
 
 function clone(val) {
@@ -127,7 +127,7 @@ async function reattachInstance() {
 
         if (frame.type !== "FRAME") {
           skippedCount += 1;
-          continue
+          continue;
         }
 
         if (!(frame.name in originalInstances)) {
@@ -162,4 +162,4 @@ async function reattachInstance() {
 
 (async () => {
     figma.closePlugin(await reattachInstance());
-})()
+})();
