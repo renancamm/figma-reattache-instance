@@ -50,10 +50,18 @@ function clone(val) {
     return JSON.parse(JSON.stringify(val));
 }
 
-function cloneProps(fromNode, toNode, propsList) {
+
+interface ClonerSettings {
+    from: Node,
+    to: Node
+}
+
+const createPropsCloner = ({from, to}: ClonerSettings) => (propsList: string[]) => {
+    if (!from || !to) return;
+
     propsList.forEach(prop => {
-        if (!fromNode[prop]) return;
-        toNode[prop] = clone(fromNode[prop]);
+        if (!from[prop]) return;
+        to[prop] = clone(from[prop]);
     });
 }
 
@@ -81,12 +89,13 @@ function loadFonts(node) {
 }
 
 function copyOverrides(frame, instance) {
-    cloneProps(frame, instance, effectsProps);
-    cloneProps(frame, instance, colorProps);
+    const cloneProps = createPropsCloner({ from: frame, to: instance });
+    cloneProps(effectsProps);
+    cloneProps(colorProps);
 
     if (instance.type === 'TEXT' && frame.type === 'TEXT') {
-        cloneProps(frame, instance, fontStyleProps);
-        cloneProps(frame, instance, textContentsProps);
+        cloneProps(fontStyleProps);
+        cloneProps(textContentsProps);
         return;
     }
 

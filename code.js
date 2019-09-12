@@ -53,13 +53,15 @@ function hasChildren(node) {
 function clone(val) {
     return JSON.parse(JSON.stringify(val));
 }
-function cloneProps(fromNode, toNode, propsList) {
+const createPropsCloner = ({ from, to }) => (propsList) => {
+    if (!from || !to)
+        return;
     propsList.forEach(prop => {
-        if (!fromNode[prop])
+        if (!from[prop])
             return;
-        toNode[prop] = clone(fromNode[prop]);
+        to[prop] = clone(from[prop]);
     });
-}
+};
 function extractFontName(node) {
     const fontsList = [];
     if (node.type === 'TEXT') {
@@ -78,11 +80,12 @@ function loadFonts(node) {
     }));
 }
 function copyOverrides(frame, instance) {
-    cloneProps(frame, instance, effectsProps);
-    cloneProps(frame, instance, colorProps);
+    const cloneProps = createPropsCloner({ from: frame, to: instance });
+    cloneProps(effectsProps);
+    cloneProps(colorProps);
     if (instance.type === 'TEXT' && frame.type === 'TEXT') {
-        cloneProps(frame, instance, fontStyleProps);
-        cloneProps(frame, instance, textContentsProps);
+        cloneProps(fontStyleProps);
+        cloneProps(textContentsProps);
         return;
     }
     if (!hasChildren(frame) || !hasChildren(instance)) {
