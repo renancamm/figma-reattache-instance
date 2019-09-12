@@ -79,21 +79,24 @@ function loadFonts(node) {
         return figma.loadFontAsync(fontName);
     }));
 }
-function copyOverrides(frame, instance) {
-    const cloneProps = createPropsCloner({ source: frame, dest: instance });
+function copyOverrides({ source, dest }) {
+    const cloneProps = createPropsCloner({ source, dest });
     cloneProps(effectsProps);
     cloneProps(colorProps);
-    if (instance.type === 'TEXT' && frame.type === 'TEXT') {
+    if (dest.type === 'TEXT' && source.type === 'TEXT') {
         cloneProps(fontStyleProps);
         cloneProps(textContentsProps);
         return;
     }
-    if (!hasChildren(frame) || !hasChildren(instance)) {
+    if (!hasChildren(source) || !hasChildren(dest)) {
         return;
     }
-    frame.children.forEach((frameChild, index) => {
-        const instanceChild = instance.children[index];
-        copyOverrides(frameChild, instanceChild);
+    source.children.forEach((sourceChild, index) => {
+        const destChild = dest.children[index];
+        copyOverrides({
+            source: sourceChild,
+            dest: destChild
+        });
     });
 }
 function reattachInstance() {
@@ -128,7 +131,10 @@ function reattachInstance() {
                 // need to load fonts first, otherwise it won't apply font styles
                 yield loadFonts(frame);
                 yield loadFonts(instanceClone);
-                copyOverrides(frame, instanceClone);
+                copyOverrides({
+                    source: frame,
+                    dest: instanceClone
+                });
                 frame.remove();
                 processedCount += 1;
                 continue;

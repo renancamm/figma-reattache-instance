@@ -7,9 +7,12 @@
  * @see https://help.figma.com/article/306-using-instances#override
  */
 
+type ChildrenContainer = InstanceNode | FrameNode
+type ApplicableNode = ChildrenContainer | TextNode
+
 interface CopyDirection {
-    source: Node,
-    dest: Node
+    source: ApplicableNode,
+    dest: ApplicableNode,
 }
 
 const effectsProps = ['effectStyleId', 'effects'];
@@ -87,24 +90,27 @@ function loadFonts(node) {
     }));
 }
 
-function copyOverrides(frame, instance) {
-    const cloneProps = createPropsCloner({ source: frame, dest: instance });
+function copyOverrides({source, dest}: CopyDirection) {
+    const cloneProps = createPropsCloner({ source, dest });
     cloneProps(effectsProps);
     cloneProps(colorProps);
 
-    if (instance.type === 'TEXT' && frame.type === 'TEXT') {
+    if (dest.type === 'TEXT' && source.type === 'TEXT') {
         cloneProps(fontStyleProps);
         cloneProps(textContentsProps);
         return;
     }
 
-    if (!hasChildren(frame) || !hasChildren(instance)) {
+    if (!hasChildren(source) || !hasChildren(dest)) {
         return;
     }
 
-    frame.children.forEach((frameChild, index) => {
-        const instanceChild = instance.children[index];
-        copyOverrides(frameChild, instanceChild);
+    (source as ChildrenContainer).children.forEach((sourceChild, index) => {
+        const destChild = (dest as ChildrenContainer).children[index];
+        copyOverrides({
+            source: sourceChild as ApplicableNode,
+            dest: destChild as ApplicableNode
+        });
     });
 }
 
@@ -146,7 +152,11 @@ async function reattachInstance() {
             // need to load fonts first, otherwise it won't apply font styles
             await loadFonts(frame);
             await loadFonts(instanceClone);
-            copyOverrides(frame, instanceClone);
+
+            copyOverrides({
+                source: frame,
+                dest: instanceClone
+            });
 
             frame.remove();
             processedCount += 1;
