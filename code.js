@@ -30,7 +30,8 @@ const colorProps = [
     'fillStyleId',
     'strokeStyleId',
 ];
-const textStyleProps = [
+const textContentsProps = ['characters'];
+const fontStyleProps = [
     'fillStyleId',
     'fills',
     'textAlignHorizontal',
@@ -80,7 +81,9 @@ function copyOverrides(frame, instance) {
     cloneProps(frame, instance, effectsProps);
     cloneProps(frame, instance, colorProps);
     if (instance.type === 'TEXT' && frame.type === 'TEXT') {
-        return cloneProps(frame, instance, textStyleProps);
+        cloneProps(frame, instance, fontStyleProps);
+        cloneProps(frame, instance, textContentsProps);
+        return;
     }
     if (!hasChildren(frame) || !hasChildren(instance)) {
         return;
