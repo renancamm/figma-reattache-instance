@@ -114,6 +114,23 @@ function copyOverrides({source, dest}: CopyDirection) {
     });
 }
 
+async function tryCopyOverrides(frame, instanceClone) {
+    try {
+        // need to load fonts first, otherwise it won't apply font styles
+        await loadFonts(frame);
+        await loadFonts(instanceClone);
+
+        copyOverrides({
+            source: frame,
+            dest: instanceClone,
+        });
+    }
+    catch(e) {
+        console.error(e);
+        return `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}]. See console logs for more info.`;
+    }
+}
+
 
 async function reattachInstance() {
     let skippedCount = 0;
@@ -149,19 +166,8 @@ async function reattachInstance() {
             instanceClone.y = frame.y;
             instanceClone.resize(frame.width, frame.height);
 
-            // need to load fonts first, otherwise it won't apply font styles
-            await loadFonts(frame);
-            await loadFonts(instanceClone);
-
-            try {
-                copyOverrides({
-                    source: frame,
-                    dest: instanceClone,
-                });
-            }
-            catch(e) {
-                console.error(e);
-                return `Couldn't copy overrides from "${frame.name}" to "${instanceClone.name}". (See console logs for more info.)`;
+            if (figma.command === 'saveOverrides') {
+                await tryCopyOverrides(frame, instanceClone);
             }
 
             frame.remove();

@@ -99,6 +99,23 @@ function copyOverrides({ source, dest }) {
         });
     });
 }
+function tryCopyOverrides(frame, instanceClone) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            // need to load fonts first, otherwise it won't apply font styles
+            yield loadFonts(frame);
+            yield loadFonts(instanceClone);
+            copyOverrides({
+                source: frame,
+                dest: instanceClone,
+            });
+        }
+        catch (e) {
+            console.error(e);
+            return `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}]. See console logs for more info.`;
+        }
+    });
+}
 function reattachInstance() {
     return __awaiter(this, void 0, void 0, function* () {
         let skippedCount = 0;
@@ -128,18 +145,8 @@ function reattachInstance() {
                 instanceClone.x = frame.x;
                 instanceClone.y = frame.y;
                 instanceClone.resize(frame.width, frame.height);
-                // need to load fonts first, otherwise it won't apply font styles
-                yield loadFonts(frame);
-                yield loadFonts(instanceClone);
-                try {
-                    copyOverrides({
-                        source: frame,
-                        dest: instanceClone,
-                    });
-                }
-                catch (e) {
-                    console.error(e);
-                    return `Couldn't copy overrides from "${frame.name}" to "${instanceClone.name}". (See console logs for more info.)`;
+                if (figma.command === 'saveOverrides') {
+                    yield tryCopyOverrides(frame, instanceClone);
                 }
                 frame.remove();
                 processedCount += 1;
