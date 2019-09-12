@@ -40,6 +40,10 @@ const textStyleProps = [
 ];
 
 
+function hasChildren(node) {
+    return !!node && !!node.children && !!node.children.length
+}
+
 function clone(val) {
     return JSON.parse(JSON.stringify(val));
 }
@@ -59,7 +63,7 @@ function extractFontName(node) {
         fontsList.push(node.fontName);
     }
 
-    if (node.children && node.children.length) {
+    if (hasChildren(node)) {
         node.children.forEach(child => {
             fontsList.push(...extractFontName(child));
         });
@@ -74,7 +78,7 @@ function loadFonts(node) {
     }));
 }
 
-function applyOverrides(frame, instance) {
+function copyOverrides(frame, instance) {
     cloneProps(frame, instance, effectsProps);
     cloneProps(frame, instance, colorProps);
 
@@ -82,13 +86,13 @@ function applyOverrides(frame, instance) {
         return cloneProps(frame, instance, textStyleProps);
     }
 
-    if (!frame.children.length) {
+    if (!hasChildren(frame) || !hasChildren(instance)) {
         return;
     }
 
     frame.children.forEach((frameChild, index) => {
         const instanceChild = instance.children[index];
-        applyOverrides(frameChild, instanceChild);
+        copyOverrides(frameChild, instanceChild);
     });
 }
 
@@ -130,7 +134,7 @@ async function reattachInstance() {
             // need to load fonts first, otherwise it won't apply font styles
             await loadFonts(frame);
             await loadFonts(instanceClone);
-            applyOverrides(frame, instanceClone);
+            copyOverrides(frame, instanceClone);
 
             frame.remove();
             processedCount += 1;
