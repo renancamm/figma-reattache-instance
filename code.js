@@ -131,10 +131,16 @@ function reattachInstance() {
                 // need to load fonts first, otherwise it won't apply font styles
                 yield loadFonts(frame);
                 yield loadFonts(instanceClone);
-                copyOverrides({
-                    source: frame,
-                    dest: instanceClone
-                });
+                try {
+                    copyOverrides({
+                        source: frame,
+                        dest: instanceClone,
+                    });
+                }
+                catch (e) {
+                    console.error(e);
+                    return `Couldn't copy overrides from "${frame.name}" to "${instanceClone.name}". (See console logs for more info.)`;
+                }
                 frame.remove();
                 processedCount += 1;
                 continue;
