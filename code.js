@@ -93,6 +93,8 @@ function copyOverrides({ source, dest }) {
     }
     source.children.forEach((sourceChild, index) => {
         const destChild = dest.children[index];
+        if (!sourceChild || !destChild)
+            return;
         copyOverrides({
             source: sourceChild,
             dest: destChild

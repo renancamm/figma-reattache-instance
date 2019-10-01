@@ -107,6 +107,8 @@ function copyOverrides({source, dest}: CopyDirection) {
 
     (source as ChildrenContainer).children.forEach((sourceChild, index) => {
         const destChild = (dest as ChildrenContainer).children[index];
+        if (!sourceChild || !destChild) return;
+
         copyOverrides({
             source: sourceChild as ApplicableNode,
             dest: destChild as ApplicableNode
