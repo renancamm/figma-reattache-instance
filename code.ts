@@ -59,6 +59,10 @@ function hasChildren(node) {
     return !!node && !!node.children && !!node.children.length;
 }
 
+function isStrucureEqual(nodeA, nodeB): boolean {
+    return nodeA.children.length === nodeB.children.length;
+}
+
 function clone(val) {
     return JSON.parse(JSON.stringify(val));
 }
@@ -107,6 +111,10 @@ function copyOverrides({source, dest}: CopyDirection) {
     }
 
     if (!hasChildren(source) || !hasChildren(dest)) {
+        return;
+    }
+
+    if (!isStrucureEqual(source, dest)) {
         return;
     }
 
