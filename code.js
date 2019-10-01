@@ -111,10 +111,14 @@ function tryCopyOverrides(frame, instanceClone) {
                 source: frame,
                 dest: instanceClone,
             });
+            return { status: 'success' };
         }
         catch (e) {
-            console.error(e);
-            return `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}]. See console logs for more info.`;
+            console.log(e);
+            return {
+                status: 'failure',
+                message: `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}] due to an error. See console logs for more info.`
+            };
         }
     });
 }
@@ -148,7 +152,9 @@ function reattachInstance() {
                 instanceClone.y = frame.y;
                 instanceClone.resize(frame.width, frame.height);
                 if (figma.command === 'saveOverrides') {
-                    yield tryCopyOverrides(frame, instanceClone);
+                    const { status, message } = yield tryCopyOverrides(frame, instanceClone);
+                    if (status === 'failure')
+                        return message;
                 }
                 frame.remove();
                 processedCount += 1;

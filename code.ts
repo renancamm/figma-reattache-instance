@@ -15,6 +15,11 @@ interface CopyDirection {
     dest: ApplicableNode,
 }
 
+interface OverrideResult {
+    status: 'success' | 'failure',
+    message?: string
+}
+
 const effectsProps = ['effectStyleId', 'effects'];
 const colorProps = [
     'backgroundStyleId',
@@ -116,7 +121,7 @@ function copyOverrides({source, dest}: CopyDirection) {
     });
 }
 
-async function tryCopyOverrides(frame, instanceClone) {
+async function tryCopyOverrides(frame, instanceClone): Promise<OverrideResult> {
     try {
         // need to load fonts first, otherwise it won't apply font styles
         await loadFonts(frame);
@@ -126,10 +131,15 @@ async function tryCopyOverrides(frame, instanceClone) {
             source: frame,
             dest: instanceClone,
         });
+
+        return {status: 'success'}
     }
     catch(e) {
-        console.error(e);
-        return `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}]. See console logs for more info.`;
+        console.log(e);
+        return {
+            status: 'failure',
+            message: `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}] due to an error. See console logs for more info.`
+        }
     }
 }
 
@@ -169,7 +179,8 @@ async function reattachInstance() {
             instanceClone.resize(frame.width, frame.height);
 
             if (figma.command === 'saveOverrides') {
-                await tryCopyOverrides(frame, instanceClone);
+                const {status, message} = await tryCopyOverrides(frame, instanceClone);
+                if (status === 'failure') return message;
             }
 
             frame.remove();
