@@ -50,7 +50,7 @@ const fontStyleProps = [
 function hasChildren(node) {
     return !!node && !!node.children && !!node.children.length;
 }
-function isStrucureEqual(nodeA, nodeB) {
+function isStructureEqual(nodeA, nodeB) {
     return nodeA.children.length === nodeB.children.length;
 }
 function clone(val) {
@@ -94,7 +94,7 @@ function copyOverrides({ source, dest }) {
     if (!hasChildren(source) || !hasChildren(dest)) {
         return;
     }
-    if (!isStrucureEqual(source, dest)) {
+    if (!isStructureEqual(source, dest)) {
         return;
     }
     source.children.forEach((sourceChild, index) => {

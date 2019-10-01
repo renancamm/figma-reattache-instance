@@ -10,7 +10,7 @@
 type ChildrenContainer = InstanceNode | FrameNode
 type ApplicableNode = ChildrenContainer | TextNode
 
-interface CopyDirection {
+interface CopyingDirection {
     source: ApplicableNode,
     dest: ApplicableNode,
 }
@@ -59,7 +59,7 @@ function hasChildren(node) {
     return !!node && !!node.children && !!node.children.length;
 }
 
-function isStrucureEqual(nodeA, nodeB): boolean {
+function isStructureEqual(nodeA, nodeB): boolean {
     return nodeA.children.length === nodeB.children.length;
 }
 
@@ -67,7 +67,7 @@ function clone(val) {
     return JSON.parse(JSON.stringify(val));
 }
 
-const createPropsCloner = ({source, dest}: CopyDirection) => (props: string[]) => {
+const createPropsCloner = ({source, dest}: CopyingDirection) => (props: string[]) => {
     if (!source || !dest) return;
 
     props.forEach(prop => {
@@ -99,7 +99,7 @@ function loadFonts(node) {
     }));
 }
 
-function copyOverrides({source, dest}: CopyDirection) {
+function copyOverrides({source, dest}: CopyingDirection) {
     const cloneProps = createPropsCloner({ source, dest });
     cloneProps(effectsProps);
     cloneProps(colorProps);
@@ -114,7 +114,7 @@ function copyOverrides({source, dest}: CopyDirection) {
         return;
     }
 
-    if (!isStrucureEqual(source, dest)) {
+    if (!isStructureEqual(source, dest)) {
         return;
     }
 
