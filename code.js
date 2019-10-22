@@ -1,28 +1,39 @@
 function reattachInstance() {
+    if (figma.currentPage.selection.length === 0) {
+        return "Select frames you want to replace with instances";
+    }
     let skippedCount = 0;
     let processedCount = 0;
-    let originalInstances = {};
-    if (figma.currentPage.selection.length == 0) {
-        return "Please, select a frame first";
-    }
+    let originalInstances = {}; // cache found instances
     const clonedSelection = Object.assign([], figma.currentPage.selection);
     for (let index in clonedSelection) {
-        let frame = clonedSelection[index];
-        let instanceReference;
-        if (frame.type !== "FRAME") {
+        if (clonedSelection[index].type !== "FRAME") {
             skippedCount += 1;
             continue;
         }
+        const frame = clonedSelection[index];
+        let componentReference = null;
         if (!(frame.name in originalInstances)) {
-            instanceReference = figma.currentPage.findOne(node => node.type === "INSTANCE" && node.name == frame.name);
-            originalInstances[frame.name] = instanceReference;
+            // Try to find an instance or master for the frame
+            componentReference = figma.currentPage.findOne(node => isEquivalentNode(frame, node));
+            originalInstances[frame.name] = componentReference;
         }
         else {
-            instanceReference = originalInstances[frame.name];
+            componentReference = originalInstances[frame.name];
         }
-        if (instanceReference != null) {
-            let instanceClone = instanceReference.masterComponent.createInstance();
-            frame.parent.appendChild(instanceClone);
+        // If instance was found, replace frame with it
+        if (componentReference !== null) {
+            let instanceClone;
+            if (componentReference.type === "INSTANCE") {
+                instanceClone = componentReference.masterComponent.createInstance();
+            }
+            else {
+                instanceClone = componentReference.createInstance();
+            }
+            // Insert instance right above the frame
+            let frameIndex = frame.parent.children.indexOf(frame);
+            frame.parent.insertChild(frameIndex + 1, instanceClone);
+            // Position and resize new instance to frame
             instanceClone.x = frame.x;
             instanceClone.y = frame.y;
             instanceClone.resize(frame.width, frame.height);
@@ -34,5 +45,13 @@ function reattachInstance() {
         continue;
     }
     return `${processedCount} processed, ${skippedCount} skipped`;
+}
+// Check if node is a component that can replace an instance
+function isEquivalentNode(frame, node) {
+    if (node.type !== "INSTANCE" && node.type !== "COMPONENT")
+        return false;
+    if (node.name !== frame.name)
+        return false;
+    return true;
 }
 figma.closePlugin(reattachInstance());
