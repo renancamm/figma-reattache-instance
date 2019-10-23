@@ -1,4 +1,158 @@
-function reattachInstance() {
+/**
+ * According to Figma API docs overrides support:
+ * - colours;
+ * - text styles;
+ * - and effects.
+ *
+ * @see https://help.figma.com/article/306-using-instances#override
+ */
+
+type ChildrenContainer = InstanceNode | FrameNode
+type ApplicableNode = ChildrenContainer | TextNode
+
+interface CopyingDirection {
+    source: ApplicableNode,
+    dest: ApplicableNode,
+}
+
+interface OverrideResult {
+    status: 'success' | 'failure',
+    message?: string
+}
+
+const effectsProps = ['effectStyleId', 'effects'];
+const colorProps = [
+    'backgroundStyleId',
+    'backgrounds',
+    'opacity',
+    'fills',
+    'strokes',
+    'strokeWeight',
+    'strokeAlign',
+    'strokeCap',
+    'strokeJoin',
+    'dashPattern',
+    'fillStyleId',
+    'strokeStyleId',
+];
+
+const textContentsProps = ['characters'];
+const fontStyleProps = [
+    'fillStyleId',
+    'fills',
+    'textAlignHorizontal',
+    'textAlignVertical',
+    'textAutoResize',
+    'paragraphIndent',
+    'paragraphSpacing',
+    'textStyleId',
+    'fontSize',
+    'fontName',
+    'textCase',
+    'textDecoration',
+    'letterSpacing',
+    'lineHeight',
+];
+
+
+function hasChildren(node) {
+    return !!node && !!node.children && !!node.children.length;
+}
+
+function isStructureEqual(nodeA, nodeB): boolean {
+    return nodeA.children.length === nodeB.children.length;
+}
+
+function clone(val) {
+    return JSON.parse(JSON.stringify(val));
+}
+
+const createPropsCloner = ({source, dest}: CopyingDirection) => (props: string[]) => {
+    if (!source || !dest) return;
+
+    props.forEach(prop => {
+        if (!source[prop]) return;
+        dest[prop] = clone(source[prop]);
+    });
+}
+
+
+function extractFontName(node) {
+    const fontsList = [];
+
+    if (node.type === 'TEXT') {
+        fontsList.push(node.fontName);
+    }
+
+    if (hasChildren(node)) {
+        node.children.forEach(child => {
+            fontsList.push(...extractFontName(child));
+        });
+    }
+
+    return fontsList;
+}
+
+function loadFonts(node) {
+    return Promise.all(extractFontName(node).map(fontName => {
+        return figma.loadFontAsync(fontName);
+    }));
+}
+
+function copyOverrides({source, dest}: CopyingDirection) {
+    const cloneProps = createPropsCloner({ source, dest });
+    cloneProps(effectsProps);
+    cloneProps(colorProps);
+
+    if (dest.type === 'TEXT' && source.type === 'TEXT') {
+        cloneProps(fontStyleProps);
+        cloneProps(textContentsProps);
+        return;
+    }
+
+    if (!hasChildren(source) || !hasChildren(dest)) {
+        return;
+    }
+
+    if (!isStructureEqual(source, dest)) {
+        return;
+    }
+
+    (source as ChildrenContainer).children.forEach((sourceChild, index) => {
+        const destChild = (dest as ChildrenContainer).children[index];
+        if (!sourceChild || !destChild) return;
+
+        copyOverrides({
+            source: sourceChild as ApplicableNode,
+            dest: destChild as ApplicableNode
+        });
+    });
+}
+
+async function tryCopyOverrides(frame, instanceClone): Promise<OverrideResult> {
+    try {
+        // need to load fonts first, otherwise it won't apply font styles
+        await loadFonts(frame);
+        await loadFonts(instanceClone);
+
+        copyOverrides({
+            source: frame,
+            dest: instanceClone,
+        });
+
+        return {status: 'success'}
+    }
+    catch(e) {
+        console.log(e);
+        return {
+            status: 'failure',
+            message: `Couldn't copy overrides from [${frame.name}] to [${instanceClone.name}] due to an error. See console logs for more info.`
+        }
+    }
+}
+
+
+async function reattachInstance() {
     let skippedCount = 0;
     let processedCount = 0;
     let originalInstances = {};
@@ -15,7 +169,7 @@ function reattachInstance() {
 
         if (frame.type !== "FRAME") {
           skippedCount += 1;
-          continue
+          continue;
         }
 
         if (!(frame.name in originalInstances)) {
@@ -31,6 +185,12 @@ function reattachInstance() {
             instanceClone.x = frame.x;
             instanceClone.y = frame.y;
             instanceClone.resize(frame.width, frame.height);
+
+            if (figma.command === 'saveOverrides') {
+                const {status, message} = await tryCopyOverrides(frame, instanceClone);
+                if (status === 'failure') return message;
+            }
+
             frame.remove();
             processedCount += 1;
             continue;
@@ -42,4 +202,6 @@ function reattachInstance() {
     return `${processedCount} processed, ${skippedCount} skipped`;
 }
 
-figma.closePlugin(reattachInstance());
+(async () => {
+    figma.closePlugin(await reattachInstance());
+})();
