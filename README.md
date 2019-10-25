@@ -19,14 +19,14 @@ Get it here: https://www.figma.com/c/plugin/741415678427267506/Reattach-Instance
 4. New instance is created for each corresponding frame
 5. The selected frames are replaced by instances 🎉
 
-*NEW:* Overrides will now be applied to instances!
+👉 *NEW:* Overrides will now be applied to instances!
 
 ## Known problems:
 - Relies too much on layer naming
 - Needs to have an instance/master as a reference on the same page
 - Doesn't work all the time with team libraries
 
-Feel free to contribute :)
+Feel free to contribute 😅
 
 
 ---
