@@ -2,9 +2,5 @@
   "name": "Reattach Instance",
   "id": "741415678427267506",
   "api": "1.0.0",
-  "main": "code.js",
-  "menu": [
-    {"name": "Save overrides", "command": "saveOverrides"},
-    {"name": "Ignore overrides", "command": "ignoreOverrides"}
-  ]
+  "main": "code.js"
 }
