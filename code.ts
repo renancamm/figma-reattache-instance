@@ -24,7 +24,7 @@ async function main() {
         let componentReference: MasterOrInstance = null;
         if (!(frame.name in originalInstances)) {
             // Try to find an instance or master for the frame
-            componentReference = figma.currentPage.findOne(node => isEquivalentNode(frame, node)) as MasterOrInstance;
+            componentReference = figma.root.findOne(node => isEquivalentNode(frame, node)) as MasterOrInstance;
             originalInstances[frame.name] = componentReference;
         } else {
             componentReference = originalInstances[frame.name];
