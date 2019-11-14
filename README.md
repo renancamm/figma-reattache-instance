@@ -23,7 +23,7 @@ Get it here: https://www.figma.com/c/plugin/741415678427267506/Reattach-Instance
 
 ## Known problems:
 - Relies too much on layer naming
-- Needs to have an instance/master as a reference on the same page
+- Needs to have an instance/master as a reference on the same file
 - Doesn't work all the time with team libraries
 
 Feel free to contribute 😅
