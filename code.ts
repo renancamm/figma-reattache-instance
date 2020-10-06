@@ -32,12 +32,19 @@ async function main() {
 
         // If instance was found, replace frame with it
         if (componentReference !== null) {
-            let instanceClone: InstanceNode;
+            let mainComponent: ComponentNode;
             if (componentReference.type === "INSTANCE") {
-                instanceClone = componentReference.masterComponent.createInstance();
+                mainComponent = componentReference.mainComponent;
             } else {
-                instanceClone = componentReference.createInstance();
+                mainComponent = componentReference;
             }
+            // load component if remote
+            if (mainComponent.remote) {
+                await figma.importComponentByKeyAsync(mainComponent.key).then(comp => {
+                    mainComponent = comp;
+                })
+            }
+            let instanceClone = mainComponent.createInstance();
             // Insert instance right above the frame
             let frameIndex = frame.parent.children.indexOf(frame);
             frame.parent.insertChild(frameIndex + 1, instanceClone);
@@ -89,8 +96,8 @@ async function overrideProperties(source: SceneNode, target: SceneNode) {
 
     // Instances can be overriden too
     if (source.type === "INSTANCE" && target.type === "INSTANCE") {
-        if (target.masterComponent.id !== source.masterComponent.id) {
-            target.masterComponent = source.masterComponent;
+        if (target.mainComponent.id !== source.mainComponent.id) {
+            target.mainComponent = source.mainComponent;
         }
     }
 
@@ -264,7 +271,7 @@ const allProperties = [
     // geometry
     "fills", // array
     "strokes", // array
-    "strokes",
+    "strokeWeight",
     "strokeAlign",
     "strokeCap",
     "strokeJoin",
@@ -277,7 +284,7 @@ const allProperties = [
 
     "exportSettings", // array
     // component instance
-    "masterComponent", // check its id
+    "mainComponent", // check its id
     // text
     "autoRename",
     "textAlignHorizontal",
@@ -303,4 +310,11 @@ const textProperties = [
 // Methods are async, close plugin when they are resolved
 main().then(msg => {
     figma.closePlugin(msg);
+}).catch(error => {
+    if (!error) {
+        figma.closePlugin('Unknown error! Contact the plugin developer.')
+        return
+    }
+    console.error(error.stack)
+    figma.closePlugin('ERROR: ' + error.message);
 });

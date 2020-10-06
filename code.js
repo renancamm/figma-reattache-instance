@@ -1,8 +1,9 @@
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -32,13 +33,20 @@ function main() {
             }
             // If instance was found, replace frame with it
             if (componentReference !== null) {
-                let instanceClone;
+                let mainComponent;
                 if (componentReference.type === "INSTANCE") {
-                    instanceClone = componentReference.masterComponent.createInstance();
+                    mainComponent = componentReference.mainComponent;
                 }
                 else {
-                    instanceClone = componentReference.createInstance();
+                    mainComponent = componentReference;
                 }
+                // load component if remote
+                if (mainComponent.remote) {
+                    yield figma.importComponentByKeyAsync(mainComponent.key).then(comp => {
+                        mainComponent = comp;
+                    });
+                }
+                let instanceClone = mainComponent.createInstance();
                 // Insert instance right above the frame
                 let frameIndex = frame.parent.children.indexOf(frame);
                 frame.parent.insertChild(frameIndex + 1, instanceClone);
@@ -91,8 +99,8 @@ function overrideProperties(source, target) {
         });
         // Instances can be overriden too
         if (source.type === "INSTANCE" && target.type === "INSTANCE") {
-            if (target.masterComponent.id !== source.masterComponent.id) {
-                target.masterComponent = source.masterComponent;
+            if (target.mainComponent.id !== source.mainComponent.id) {
+                target.mainComponent = source.mainComponent;
             }
         }
         // Recursively change all children
@@ -252,7 +260,7 @@ const allProperties = [
     // geometry
     "fills",
     "strokes",
-    "strokes",
+    "strokeWeight",
     "strokeAlign",
     "strokeCap",
     "strokeJoin",
@@ -263,7 +271,7 @@ const allProperties = [
     "cornerSmoothing",
     "exportSettings",
     // component instance
-    "masterComponent",
+    "mainComponent",
     // text
     "autoRename",
     "textAlignHorizontal",
@@ -286,4 +294,11 @@ const textProperties = [
 // Methods are async, close plugin when they are resolved
 main().then(msg => {
     figma.closePlugin(msg);
+}).catch(error => {
+    if (!error) {
+        figma.closePlugin('Unknown error! Contact the plugin developer.');
+        return;
+    }
+    console.error(error.stack);
+    figma.closePlugin('ERROR: ' + error.message);
 });
