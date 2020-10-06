@@ -32,12 +32,19 @@ async function main() {
 
         // If instance was found, replace frame with it
         if (componentReference !== null) {
-            let instanceClone: InstanceNode;
+            let mainComponent: ComponentNode;
             if (componentReference.type === "INSTANCE") {
-                instanceClone = componentReference.mainComponent.createInstance();
+                mainComponent = componentReference.mainComponent;
             } else {
-                instanceClone = componentReference.createInstance();
+                mainComponent = componentReference;
             }
+            // load component if remote
+            if (mainComponent.remote) {
+                await figma.importComponentByKeyAsync(mainComponent.key).then(comp => {
+                    mainComponent = comp;
+                })
+            }
+            let instanceClone = mainComponent.createInstance();
             // Insert instance right above the frame
             let frameIndex = frame.parent.children.indexOf(frame);
             frame.parent.insertChild(frameIndex + 1, instanceClone);
