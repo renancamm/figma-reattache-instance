@@ -264,7 +264,7 @@ const allProperties = [
     // geometry
     "fills", // array
     "strokes", // array
-    "strokes",
+    "strokeWeight",
     "strokeAlign",
     "strokeCap",
     "strokeJoin",
