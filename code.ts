@@ -34,7 +34,7 @@ async function main() {
         if (componentReference !== null) {
             let instanceClone: InstanceNode;
             if (componentReference.type === "INSTANCE") {
-                instanceClone = componentReference.masterComponent.createInstance();
+                instanceClone = componentReference.mainComponent.createInstance();
             } else {
                 instanceClone = componentReference.createInstance();
             }
@@ -89,8 +89,8 @@ async function overrideProperties(source: SceneNode, target: SceneNode) {
 
     // Instances can be overriden too
     if (source.type === "INSTANCE" && target.type === "INSTANCE") {
-        if (target.masterComponent.id !== source.masterComponent.id) {
-            target.masterComponent = source.masterComponent;
+        if (target.mainComponent.id !== source.mainComponent.id) {
+            target.mainComponent = source.mainComponent;
         }
     }
 
@@ -277,7 +277,7 @@ const allProperties = [
 
     "exportSettings", // array
     // component instance
-    "masterComponent", // check its id
+    "mainComponent", // check its id
     // text
     "autoRename",
     "textAlignHorizontal",

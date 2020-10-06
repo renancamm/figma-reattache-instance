@@ -35,7 +35,7 @@ function main() {
             if (componentReference !== null) {
                 let instanceClone;
                 if (componentReference.type === "INSTANCE") {
-                    instanceClone = componentReference.masterComponent.createInstance();
+                    instanceClone = componentReference.mainComponent.createInstance();
                 }
                 else {
                     instanceClone = componentReference.createInstance();
@@ -92,8 +92,8 @@ function overrideProperties(source, target) {
         });
         // Instances can be overriden too
         if (source.type === "INSTANCE" && target.type === "INSTANCE") {
-            if (target.masterComponent.id !== source.masterComponent.id) {
-                target.masterComponent = source.masterComponent;
+            if (target.mainComponent.id !== source.mainComponent.id) {
+                target.mainComponent = source.mainComponent;
             }
         }
         // Recursively change all children
@@ -264,7 +264,7 @@ const allProperties = [
     "cornerSmoothing",
     "exportSettings",
     // component instance
-    "masterComponent",
+    "mainComponent",
     // text
     "autoRename",
     "textAlignHorizontal",
