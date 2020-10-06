@@ -287,4 +287,11 @@ const textProperties = [
 // Methods are async, close plugin when they are resolved
 main().then(msg => {
     figma.closePlugin(msg);
+}).catch(error => {
+    if (!error) {
+        figma.closePlugin('Unknown error! Contact the plugin developer.');
+        return;
+    }
+    console.error(error.stack);
+    figma.closePlugin('ERROR: ' + error.message);
 });
